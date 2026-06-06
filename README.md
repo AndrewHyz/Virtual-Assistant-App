@@ -1,4 +1,4 @@
-# Virtual Assistant App
+# KTByte Virtual Assistant
 
 This is a JavaFX virtual assistant app. The assistant opens a small desktop window where you can type commands. It reads your command, chooses the app action that best matches it, and displays a response in the conversation list.
 
@@ -48,7 +48,7 @@ To change the icon again, replace that PNG file with another PNG image and rerun
 2. Press `Enter` or click the `Go` button.
 3. The assistant will show your command and then display its response.
 
-The assistant currently supports Weather, Time, To-Do List, Qwen AI, and Calculator commands.
+The assistant currently supports Weather, Time, To-Do List, DeepSeek AI, and Calculator commands.
 
 ## Time Commands
 
@@ -154,41 +154,35 @@ Example response:
 
 Note: the Calculator app requires an internet connection.
 
-## Qwen AI Commands
+## DeepSeek AI Commands
 
-The Qwen app sends a question or prompt to Qwen 3.6 Plus through the DashScope OpenAI-compatible chat completions API.
+The DeepSeek app sends a question or prompt to DeepSeek through the OpenAI-compatible chat completions API.
 
 Before using it, set your API key as an environment variable:
 
 ```text
-QWEN_API_KEY=your_api_key_here
+DEEPSEEK_API_KEY=your_api_key_here
 ```
 
-You can also use:
+If Eclipse does not pass environment variables to the app, create a file named `deepseek.properties` in the project root:
 
 ```text
-DASHSCOPE_API_KEY=your_api_key_here
-```
-
-If Eclipse does not pass environment variables to the app, create a file named `qwen.properties` in the project root:
-
-```text
-QWEN_API_KEY=your_api_key_here
-QWEN_API_URL=https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions
-QWEN_MODEL=qwen3.6-plus
+DEEPSEEK_API_KEY=your_api_key_here
+DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
+DEEPSEEK_MODEL=deepseek-v4-flash
 ```
 
 There is an example file at:
 
 ```text
-qwen.properties.example
+deepseek.properties.example
 ```
 
 Example commands:
 
 ```text
-ask qwen explain Java arrays
-qwen write a haiku about Shanghai
+ask deepseek explain Java arrays
+deepseek write a haiku about Shanghai
 ai give me three study tips
 chat summarize what polymorphism means
 ```
@@ -196,37 +190,37 @@ chat summarize what polymorphism means
 Example response:
 
 ```text
-Qwen will answer your prompt in the assistant window.
+DeepSeek will answer your prompt in the assistant window.
 ```
 
 The app uses this model by default:
 
 ```text
-qwen3.6-plus
+deepseek-v4-flash
 ```
 
 You can override the model with:
 
 ```text
-QWEN_MODEL=qwen3.6-plus
+DEEPSEEK_MODEL=deepseek-chat
 ```
 
 The default API URL is:
 
 ```text
-https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+https://api.deepseek.com/chat/completions
 ```
 
 You can override it with:
 
 ```text
-QWEN_API_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions
+DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
 ```
 
-The Qwen app code is here:
+The DeepSeek app code is here:
 
 ```text
-src/assistant/app/qwen/AskQwenAction.java
+src/assistant/app/deepseek/AskDeepSeekAction.java
 ```
 
 ## How Commands Are Chosen
@@ -243,8 +237,8 @@ src/assistant/app/weather/WeatherApp.java
 src/assistant/app/weather/GetWeatherAction.java
 src/assistant/app/todo/TodoListApp.java
 src/assistant/app/todo/TodoListAction.java
-src/assistant/app/qwen/QwenApp.java
-src/assistant/app/qwen/AskQwenAction.java
+src/assistant/app/deepseek/DeepSeekApp.java
+src/assistant/app/deepseek/AskDeepSeekAction.java
 src/assistant/app/calculator/CalculatorApp.java
 src/assistant/app/calculator/CalculateAction.java
 ```
@@ -262,5 +256,5 @@ To add another assistant feature:
 Example:
 
 ```java
-return new App[]{new WeatherApp(), new TimeApp(), new TodoListApp(), new QwenApp(), new CalculatorApp()};
+return new App[]{new WeatherApp(), new TimeApp(), new TodoListApp(), new DeepSeekApp(), new CalculatorApp()};
 ```
