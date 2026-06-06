@@ -1,4 +1,4 @@
-# KTByte Virtual Assistant
+# Virtual Assistant App
 
 This is a JavaFX virtual assistant app. The assistant opens a small desktop window where you can type commands. It reads your command, chooses the app action that best matches it, and displays a response in the conversation list.
 
