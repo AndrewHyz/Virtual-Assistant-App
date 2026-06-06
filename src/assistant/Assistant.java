@@ -30,7 +30,7 @@ import assistant.app.App;
 import assistant.app.Displayable;
 import assistant.app.Response;
 import assistant.app.calculator.CalculatorApp;
-import assistant.app.qwen.QwenApp;
+import assistant.app.deepseek.DeepSeekApp;
 import assistant.app.todo.TodoListApp;
 import assistant.app.time.TimeApp;
 import assistant.app.weather.WeatherApp;
@@ -201,7 +201,7 @@ public class Assistant extends Application {
   
   private static App[] getAvailableApps(){
     // TODO: add more apps avilable to the Virtual Assistant here
-    return new App[]{new WeatherApp(), new TimeApp(), new TodoListApp(), new QwenApp(), new CalculatorApp()};
+    return new App[]{new WeatherApp(), new TimeApp(), new TodoListApp(), new DeepSeekApp(), new CalculatorApp()};
   }
 }
 
