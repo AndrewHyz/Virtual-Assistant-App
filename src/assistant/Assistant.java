@@ -6,41 +6,40 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 import assistant.app.Action;
 import assistant.app.App;
 import assistant.app.Displayable;
 import assistant.app.MarkdownResponse;
-import assistant.app.Response;
 import assistant.app.Response;
 import assistant.app.calculator.CalculatorApp;
 import assistant.app.deepseek.DeepSeekApp;
@@ -76,10 +75,9 @@ public class Assistant extends Application {
   
   private TextField commandTextField = new TextField();
   private Button goButton = new Button("Go");
-  private ObservableList<Displayable> displayItems = FXCollections.observableArrayList();
-  
   private List<Action> actions = new ArrayList<>();
-  private ListView<Displayable> displayItemsListView = new ListView<Displayable>(displayItems);
+  private VBox conversationBox = new VBox(5);
+  private ScrollPane scrollPane = new ScrollPane();
   
   private App[] apps = getAvailableApps();
 
@@ -112,67 +110,17 @@ public class Assistant extends Application {
     
     goButton.setOnAction(doCommand);
     commandTextField.setOnAction(doCommand);
-    
-    displayItemsListView.setCellFactory(new Callback<ListView<Displayable>, ListCell<Displayable>>() {
-      
-      @Override
-      public ListCell<Displayable> call(ListView<Displayable> listView) {
-        return new ListCell<Displayable>() {
-          private Label label = new Label();
-          private WebView webView = new WebView();
-          private boolean webViewReady = false;
-          
-          {
-            label.setWrapText(true);
-            label.maxWidthProperty().bind(listView.widthProperty().subtract(30));
-            
-            webView.setPrefHeight(100);
-            webView.setMinHeight(40);
-            webView.prefWidthProperty().bind(listView.widthProperty().subtract(20));
-            webView.getEngine().getLoadWorker().stateProperty().addListener((obs, oldVal, newVal) -> {
-              if (newVal == Worker.State.SUCCEEDED) {
-                Platform.runLater(() -> {
-                  Object h = webView.getEngine().executeScript(
-                    "Math.max(document.body.scrollHeight || 0, " +
-                    "document.documentElement.scrollHeight || 0, " +
-                    "document.body.offsetHeight || 0, " +
-                    "document.documentElement.offsetHeight || 0)");
-                  if (h instanceof Number) {
-                    webView.setPrefHeight(((Number)h).doubleValue() + 10);
-                    webViewReady = true;
-                  }
-                });
-              }
-            });
-          }
-          
-          @Override 
-          protected void updateItem(Displayable item, boolean empty) {
-            super.updateItem(item, empty);
-            super.setText(null);
-            if(item == null || empty) {
-              super.setGraphic(null);
-            } else if (item instanceof MarkdownResponse) {
-              MarkdownResponse mr = (MarkdownResponse) item;
-              webViewReady = false;
-              webView.setPrefHeight(100);
-              webView.getEngine().loadContent(wrapMarkdownHtml(mr.getHtmlContent()));
-              super.setGraphic(webView);
-            } else {
-              item.update(label);
-              super.setGraphic(label);
-            }
-          }
-        };
-      }
-    });
   }
   
   private void initUILayout(Stage stage) {
     
     BorderPane root = new BorderPane();
     root.setPadding(new Insets(10, 10, 10, 10));
-    root.setCenter(displayItemsListView);
+    
+    scrollPane.setContent(conversationBox);
+    scrollPane.setFitToWidth(true);
+    scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+    root.setCenter(scrollPane);
     
     HBox hbox = new HBox();
     hbox.setSpacing(10);
@@ -308,7 +256,7 @@ public class Assistant extends Application {
     if(bestAction != null) {
       System.out.println(command + ", best action: " + bestAction.getClass() + ", score: " + bestActionScore);
     }
-    displayItems.add(new EnteredCommand(command));
+    displayItem(new EnteredCommand(command));
     if(bestActionScore > 0.5) {
       try {
         bestAction.doCommand(command);
@@ -323,12 +271,50 @@ public class Assistant extends Application {
   }
   
   /**
-   * Adds an item to the displayable list
+   * Adds an item to the display and scrolls to it.
    * @param item
    */
   public void displayItem(Displayable item) {
-    displayItems.add(item);
-    displayItemsListView.scrollTo(item);
+    Node node;
+    
+    if (item instanceof MarkdownResponse) {
+      MarkdownResponse mr = (MarkdownResponse) item;
+      WebView webView = new WebView();
+      webView.setPrefHeight(80);
+      webView.setMinHeight(40);
+      webView.prefWidthProperty().bind(conversationBox.widthProperty().subtract(20));
+      
+      webView.getEngine().getLoadWorker().stateProperty().addListener((obs, oldVal, newVal) -> {
+        if (newVal == Worker.State.SUCCEEDED) {
+          Platform.runLater(() -> {
+            Object h = webView.getEngine().executeScript(
+              "Math.max(document.body.scrollHeight || 0, " +
+              "document.documentElement.scrollHeight || 0, " +
+              "document.body.offsetHeight || 0, " +
+              "document.documentElement.offsetHeight || 0)");
+            if (h instanceof Number) {
+              webView.setPrefHeight(((Number)h).doubleValue() + 10);
+            }
+          });
+        }
+      });
+      
+      String html = wrapMarkdownHtml(mr.getHtmlContent());
+      byte[] utf8Bytes = html.getBytes(StandardCharsets.UTF_8);
+      String dataUri = "data:text/html;charset=utf-8;base64," + Base64.getEncoder().encodeToString(utf8Bytes);
+      webView.getEngine().load(dataUri);
+      node = webView;
+    } else {
+      Label label = new Label();
+      label.setWrapText(true);
+      label.setMaxWidth(Double.MAX_VALUE);
+      label.prefWidthProperty().bind(conversationBox.widthProperty().subtract(30));
+      item.update(label);
+      node = label;
+    }
+    
+    conversationBox.getChildren().add(node);
+    Platform.runLater(() -> scrollPane.setVvalue(1.0));
   }
   
   private static App[] getAvailableApps(){
@@ -362,8 +348,25 @@ public class Assistant extends Application {
       "li { margin: 2px 0; }" +
       "a { color: #4a90d9; }" +
       "hr { border: none; border-top: 1px solid #ddd; margin: 12px 0; }" +
-      "</style></head><body>" + body + "</body></html>";
+      "</style></head><body>" + encodeSupplementaryChars(body) + "</body></html>";
+  }
+
+  /**
+   * Encodes supplementary Unicode characters (code points > U+FFFF)
+   * as HTML numeric character references to work around JavaFX WebView
+   * UTF-16 surrogate pair handling issues.
+   */
+  private static String encodeSupplementaryChars(String text) {
+    StringBuilder sb = new StringBuilder(text.length());
+    for (int i = 0; i < text.length(); i++) {
+      int cp = text.codePointAt(i);
+      if (cp > 0xFFFF) {
+        sb.append("&#x").append(Integer.toHexString(cp)).append(";");
+        i++; // skip low surrogate
+      } else {
+        sb.append((char) cp);
+      }
+    }
+    return sb.toString();
   }
 }
-
-

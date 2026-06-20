@@ -27,7 +27,6 @@ public class MarkdownResponse implements Displayable {
 
     @Override
     public void update(Label label) {
-        // MarkdownResponse is rendered via WebView in the cell factory
         label.setText("");
     }
 

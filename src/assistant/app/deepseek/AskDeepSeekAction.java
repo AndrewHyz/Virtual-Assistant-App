@@ -52,7 +52,7 @@ public class AskDeepSeekAction extends Action {
 		try {
 			HttpResponse<JsonNode> response = Unirest.post(getApiUrl())
 					.header("Authorization", "Bearer " + apiKey)
-					.header("Content-Type", "application/json")
+					.header("Content-Type", "application/json; charset=utf-8")
 					.body(body.toString())
 					.asJson();
 
@@ -157,6 +157,19 @@ public class AskDeepSeekAction extends Action {
 			if (message != null) {
 				answer = message.optString("content");
 			}
+		}
+
+		// Diagnostic: print code points to find where emoji get lost
+		if (answer.length() > 0) {
+			int emojiCount = 0;
+			for (int i = 0; i < answer.length(); i++) {
+				int cp = answer.codePointAt(i);
+				if (cp > 0xFFFF) {
+					emojiCount++;
+					i++; // skip surrogate pair
+				}
+			}
+			System.out.println("DeepSeek answer length=" + answer.length() + " chars, emoji=" + emojiCount);
 		}
 
 		if (answer == null || answer.length() == 0) {
