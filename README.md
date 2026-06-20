@@ -1,6 +1,20 @@
 # Virtual Assistant App
 
-This is a JavaFX virtual assistant app. The assistant opens a small desktop window where you can type commands. It reads your command, chooses the app action that best matches it, and displays a response in the conversation list.
+A JavaFX desktop virtual assistant with a chat-like interface. Type commands and the assistant picks the best matching app to handle them.
+
+**Latest release:** [VirtualAssistant-1.1.1.exe](https://github.com/AndrewHyz/Virtual-Assistant-App/releases/tag/v1.1.1) (Windows installer, includes bundled JRE — no Java install needed)
+
+## Features
+
+| App | Description |
+|---|---|
+| DeepSeek AI | Chat with DeepSeek, responses rendered as Markdown |
+| Weather | Current temperature and conditions via OpenWeatherMap |
+| Time | Local time display |
+| To-Do List | Add, list, remove, and clear items |
+| Calculator | Math expressions via math.js API |
+
+Long responses automatically wrap to fit the window. Resize the window and text reflows.
 
 ## How To Start The App
 
@@ -10,21 +24,7 @@ Open the project in Eclipse, then run:
 src/assistant/Main.java
 ```
 
-The main class is:
-
-```text
-assistant.Main
-```
-
-When the app starts, a window titled `Virtual Assistant` will appear.
-
-If Eclipse shows this error:
-
-```text
-JavaFX runtime components are missing, and are required to run this application
-```
-
-make sure your Run Configuration uses this main class:
+Main class:
 
 ```text
 assistant.Main
@@ -32,31 +32,33 @@ assistant.Main
 
 Do not run `assistant.Assistant` directly.
 
-The JavaFX native-access warning can appear when running JavaFX 12 on a newer JDK. It is a warning, not the crash. The app can still run.
-
-The app icon is stored here:
+If Eclipse shows:
 
 ```text
-src/assistant/assets/app-icon.png
+JavaFX runtime components are missing, and are required to run this application
 ```
 
-To change the icon again, replace that PNG file with another PNG image and rerun the app.
+make sure your Run Configuration uses `assistant.Main` as the main class.
 
 ## How To Use The App
 
 1. Type a command in the text box next to `Command:`.
-2. Press `Enter` or click the `Go` button.
-3. The assistant will show your command and then display its response.
+2. Press `Enter` or click `Go`.
+3. The assistant shows your command and its response.
 
-The assistant currently supports Weather, Time, To-Do List, DeepSeek AI, and Calculator commands.
+### Settings
 
-Long responses (from DeepSeek or other apps) will automatically wrap to fit the window width. Resize the window and the text will reflow.
+Click the **gear button** next to `Go` to open the settings dialog. You can configure:
+
+- **API Key** — your DeepSeek API key (`sk-...`)
+- **API URL** — defaults to `https://api.deepseek.com/chat/completions`
+- **Model** — defaults to `deepseek-v4-flash`
+
+Settings are saved to `deepseek.properties` in the project root.
 
 ## Time Commands
 
-The Time app displays the current local time.
-
-Example commands:
+Examples:
 
 ```text
 what time is it
@@ -64,7 +66,7 @@ time
 show me the time
 ```
 
-Example response:
+Response:
 
 ```text
 Local time: 14:35:20.123
@@ -72,9 +74,9 @@ Local time: 14:35:20.123
 
 ## Weather Commands
 
-The Weather app gets weather information from OpenWeatherMap. Temperatures are shown in Celsius.
+Requires internet. Temperatures in Celsius.
 
-Example commands:
+Examples:
 
 ```text
 weather in Boston
@@ -82,91 +84,67 @@ what is the weather in Shanghai
 weather zip 02139
 ```
 
-Example response:
+Response:
 
 ```text
 The temperature in Boston is 22.5 degrees Celsius with clear sky
 ```
 
-Note: the Weather app requires an internet connection.
-
 ## To-Do List Commands
 
-The To-Do List app lets you add, view, remove, and clear to-do items while the assistant is running.
+Items are stored in memory (reset when the app closes).
 
-Add an item:
+Add:
 
 ```text
 add todo buy milk
 add task finish homework
-add to-do call mom
 ```
 
-Show the list:
+Show:
 
 ```text
 list todos
-show todo list
 todo list
 ```
 
-Remove an item:
+Remove:
 
 ```text
 remove buy milk
-remove finish homework
 ```
 
-Clear the whole list:
+Clear:
 
 ```text
-clear todo list
 clear todos
 ```
 
-Example responses:
-
-```text
-Added to your to-do list: buy milk
-To-do list: 1. buy milk, 2. finish homework
-Removed from your to-do list: buy milk
-Your to-do list is now empty
-```
-
-Note: to-do items are stored only while the program is running. If you close the app, the list will reset.
-
 ## Calculator Commands
 
-The Calculator app sends math expressions to the math.js web service and displays the result.
+Requires internet. Sends expressions to math.js.
 
-Example commands:
+Examples:
 
 ```text
 calculate 2 + 2
 calc 2 * (7 - 3)
 math sqrt(16)
-solve 5.08 cm in inch
 ```
 
-Example response:
+Response:
 
 ```text
 2 + 2 = 4
 ```
 
-Note: the Calculator app requires an internet connection.
-
 ## DeepSeek AI Commands
 
-The DeepSeek app sends a question or prompt to DeepSeek through the OpenAI-compatible chat completions API.
+Requires internet and a DeepSeek API key.
 
-Before using it, set your API key as an environment variable:
+### Setup
 
-```text
-DEEPSEEK_API_KEY=your_api_key_here
-```
-
-If Eclipse does not pass environment variables to the app, create a file named `deepseek.properties` in the project root:
+Click the **Settings** button in the app, enter your API key, and click OK. Or create `deepseek.properties` manually:
 
 ```text
 DEEPSEEK_API_KEY=your_api_key_here
@@ -174,129 +152,99 @@ DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
 DEEPSEEK_MODEL=deepseek-v4-flash
 ```
 
-There is an example file at:
+A template is at `deepseek.properties.example`.
 
-```text
-deepseek.properties.example
-```
+### Usage
 
-Example commands:
+Examples:
 
 ```text
 ask deepseek explain Java arrays
 deepseek write a haiku about Shanghai
 ai give me three study tips
-chat summarize what polymorphism means
-```
-
-Example response:
-
-```text
-DeepSeek will answer your prompt in the assistant window.
-```
-
-The app uses this model by default:
-
-```text
-deepseek-v4-flash
-```
-
-You can override the model with:
-
-```text
-DEEPSEEK_MODEL=deepseek-chat
-```
-
-The default API URL is:
-
-```text
-https://api.deepseek.com/chat/completions
-```
-
-You can override it with:
-
-```text
-DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
 ```
 
 ### Markdown Rendering
 
-DeepSeek responses are rendered as Markdown. Supported formatting includes:
+DeepSeek responses are rendered as Markdown:
 
-- **Headings** (`#`, `##`, `###`)
-- **Bold** (`**text**`) and *italic* (`*text*`)
-- **Code blocks** (``` ``` ```) with syntax highlighting style
-- **Inline code** (`` `code` ``)
-- **Tables** (`| col | col |`)
-- **Blockquotes** (`> quote`)
-- **Lists** (ordered and unordered)
-- **Links** and horizontal rules
+- Headings, paragraphs
+- **Bold** and *italic*
+- Code blocks with syntax highlighting style
+- Inline `code`
+- Tables, blockquotes
+- Ordered and unordered lists
+- Links
 
-The Markdown rendering uses:
+Implementation:
 
 ```text
 src/assistant/app/MarkdownResponse.java
 ```
 
-This class converts Markdown to HTML using the
-[flexmark](https://github.com/vsch/flexmark-java) library, then displays it in a
-JavaFX WebView with custom styling.
-
-### Dependencies
-
-The Markdown rendering requires the flexmark Maven dependency, already included in `pom.xml`:
-
-```xml
-<dependency>
-    <groupId>com.vladsch.flexmark</groupId>
-    <artifactId>flexmark</artifactId>
-    <version>0.64.8</version>
-</dependency>
-```
-
-Run `Maven > Update Project` in Eclipse before building if the dependency is missing.
-
-The DeepSeek app code is here:
-
-```text
-src/assistant/app/deepseek/AskDeepSeekAction.java
-```
+Uses [flexmark](https://github.com/vsch/flexmark-java) to convert Markdown to HTML, displayed in a JavaFX WebView.
 
 ## How Commands Are Chosen
 
-Each app has one or more `Action` classes. Every action gives the command a likelihood score. The assistant runs the action with the highest score if that score is greater than `0.5`.
+Each app has `Action` classes that score the user's command. The highest-scoring action above `0.5` wins.
 
-Important files:
+## Project Structure
 
 ```text
-src/assistant/Assistant.java
-src/assistant/app/Displayable.java
-src/assistant/app/Response.java
-src/assistant/app/MarkdownResponse.java
-src/assistant/app/time/TimeApp.java
-src/assistant/app/time/GetTimeAction.java
-src/assistant/app/weather/WeatherApp.java
-src/assistant/app/weather/GetWeatherAction.java
-src/assistant/app/todo/TodoListApp.java
-src/assistant/app/todo/TodoListAction.java
-src/assistant/app/deepseek/DeepSeekApp.java
-src/assistant/app/deepseek/AskDeepSeekAction.java
-src/assistant/app/calculator/CalculatorApp.java
-src/assistant/app/calculator/CalculateAction.java
+src/assistant/
+  Assistant.java          Main application class (UI + command routing)
+  EnteredCommand.java     User command display item
+  Main.java               Entry point
+  app/
+    Action.java           Abstract action (score + execute)
+    App.java              Abstract app (provides actions)
+    Displayable.java      Interface for display items
+    Response.java         Plain text response
+    MarkdownResponse.java Markdown response (via WebView)
+    calculator/           Calculator app
+    deepseek/             DeepSeek AI app
+    time/                 Time app
+    todo/                 To-do list app
+    weather/              Weather app
+  assets/
+    app-icon.png          Application icon
 ```
+
+## Dependencies
+
+Managed via Maven (`pom.xml`):
+
+| Dependency | Purpose |
+|---|---|
+| JavaFX 12 | UI framework |
+| flexmark 0.64.8 | Markdown to HTML |
+| unirest-java 1.4.9 | HTTP client |
+| Gson 2.8.6 | JSON parsing |
+
+Run `Maven > Update Project` in Eclipse before building.
 
 ## Adding A New App
 
-To add another assistant feature:
-
-1. Create a new package under `src/assistant/app/`.
-2. Create an app class that extends `App`.
-3. Create one or more action classes that extend `Action`.
-4. Return the actions from the app class using `getActions()`.
-5. Add the app to `getAvailableApps()` in `Assistant.java`.
+1. Create a package under `src/assistant/app/`.
+2. Create an app class extending `App`.
+3. Create action classes extending `Action`.
+4. Return actions via `getActions()`.
+5. Register the app in `Assistant.getAvailableApps()`.
 
 Example:
 
 ```java
-return new App[]{new WeatherApp(), new TimeApp(), new TodoListApp(), new DeepSeekApp(), new CalculatorApp()};
+return new App[]{new WeatherApp(), new TimeApp(), new TodoListApp(),
+                 new DeepSeekApp(), new CalculatorApp(), new MyApp()};
+```
+
+## Building the Installer
+
+Uses `jpackage` (JDK 14+) with WiX on Windows:
+
+```bash
+mvn clean package -DskipTests
+jpackage --type exe --name VirtualAssistant --app-version 1.1.1 \
+  --input target --main-jar AssistantApp.jar --main-class assistant.Main \
+  --icon app-icon.ico --win-dir-chooser --win-menu --win-shortcut
 ```
