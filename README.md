@@ -21,7 +21,7 @@ When the app starts, a window titled `Virtual Assistant` will appear.
 If Eclipse shows this error:
 
 ```text
-缺少 JavaFX 运行时组件, 需要使用该组件来运行此应用程序
+JavaFX runtime components are missing, and are required to run this application
 ```
 
 make sure your Run Configuration uses this main class:
@@ -254,7 +254,7 @@ The Markdown rendering requires the flexmark Maven dependency, already included 
 </dependency>
 ```
 
-Run `Maven → Update Project` in Eclipse before building if the dependency is missing.
+Run `Maven > Update Project` in Eclipse before building if the dependency is missing.
 
 The DeepSeek app code is here:
 

@@ -2,9 +2,14 @@ package assistant;
 
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -17,12 +22,15 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.web.WebView;
@@ -171,8 +179,11 @@ public class Assistant extends Application {
     hbox.setPrefHeight(50);
     hbox.setAlignment(Pos.CENTER);
     
+    Button settingsButton = new Button("\u2699");
+    settingsButton.setOnAction(e -> showSettingsDialog());
+    
     HBox.setHgrow(commandTextField, Priority.ALWAYS);
-    hbox.getChildren().addAll(new Label("Command:"), commandTextField, goButton);
+    hbox.getChildren().addAll(new Label("Command:"), commandTextField, goButton, settingsButton);
     root.setBottom(hbox);
     stage.setTitle("Virtual Assistant");
     loadAppIcon(stage);
@@ -190,6 +201,86 @@ public class Assistant extends Application {
     File iconFile = new File("src/assistant/assets/app-icon.png");
     if(iconFile.exists()) {
       stage.getIcons().add(new Image(iconFile.toURI().toString()));
+    }
+  }
+
+  private void showSettingsDialog() {
+    Dialog<ButtonType> dialog = new Dialog<>();
+    dialog.setTitle("Settings");
+    dialog.setHeaderText("DeepSeek API Configuration");
+
+    String existingKey = getDeepSeekConfig("DEEPSEEK_API_KEY", "");
+    String existingUrl = getDeepSeekConfig("DEEPSEEK_API_URL", "https://api.deepseek.com/chat/completions");
+    String existingModel = getDeepSeekConfig("DEEPSEEK_MODEL", "deepseek-v4-flash");
+
+    GridPane grid = new GridPane();
+    grid.setHgap(10);
+    grid.setVgap(10);
+    grid.setPadding(new Insets(20, 20, 10, 10));
+
+    TextField apiKeyField = new TextField(existingKey);
+    apiKeyField.setPromptText("sk-...");
+    apiKeyField.setPrefWidth(300);
+
+    TextField apiUrlField = new TextField(existingUrl);
+    apiUrlField.setPromptText("https://api.deepseek.com/chat/completions");
+
+    TextField modelField = new TextField(existingModel);
+    modelField.setPromptText("deepseek-v4-flash");
+
+    grid.add(new Label("API Key:"), 0, 0);
+    grid.add(apiKeyField, 1, 0);
+    grid.add(new Label("API URL:"), 0, 1);
+    grid.add(apiUrlField, 1, 1);
+    grid.add(new Label("Model:"), 0, 2);
+    grid.add(modelField, 1, 2);
+
+    dialog.getDialogPane().setContent(grid);
+    dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+    Optional<ButtonType> result = dialog.showAndWait();
+    if (result.isPresent() && result.get() == ButtonType.OK) {
+      saveDeepSeekConfig("DEEPSEEK_API_KEY", apiKeyField.getText());
+      saveDeepSeekConfig("DEEPSEEK_API_URL", apiUrlField.getText());
+      saveDeepSeekConfig("DEEPSEEK_MODEL", modelField.getText());
+      displayItem(new Response("Settings saved. DeepSeek is now configured."));
+    }
+  }
+
+  private String getDeepSeekConfig(String key, String defaultValue) {
+    File configFile = new File("deepseek.properties");
+    if (!configFile.exists()) {
+      return defaultValue;
+    }
+    Properties properties = new Properties();
+    try (FileInputStream inputStream = new FileInputStream(configFile)) {
+      properties.load(inputStream);
+      return properties.getProperty(key, defaultValue);
+    } catch (IOException e) {
+      System.out.println("Could not read deepseek.properties: " + e);
+      return defaultValue;
+    }
+  }
+
+  private void saveDeepSeekConfig(String key, String value) {
+    File configFile = new File("deepseek.properties");
+    Properties properties = new Properties();
+    if (configFile.exists()) {
+      try (FileInputStream inputStream = new FileInputStream(configFile)) {
+        properties.load(inputStream);
+      } catch (IOException e) {
+        // Start fresh if we can't read
+      }
+    }
+    if (value != null && value.length() > 0) {
+      properties.setProperty(key, value);
+    } else {
+      properties.remove(key);
+    }
+    try (FileOutputStream outputStream = new FileOutputStream(configFile)) {
+      properties.store(outputStream, "DeepSeek Configuration");
+    } catch (IOException e) {
+      System.out.println("Could not write deepseek.properties: " + e);
     }
   }
   
