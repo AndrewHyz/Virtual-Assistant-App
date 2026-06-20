@@ -1,7 +1,7 @@
 package assistant.app;
 
-import javafx.scene.control.ListCell;
+import javafx.scene.control.Label;
 
 public interface Displayable {
-  void update(ListCell<Displayable> cell);
+  void update(Label label);
 }

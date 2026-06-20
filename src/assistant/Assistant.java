@@ -103,15 +103,24 @@ public class Assistant extends Application {
     displayItemsListView.setCellFactory(new Callback<ListView<Displayable>, ListCell<Displayable>>() {
       
       @Override
-      public ListCell<Displayable> call(ListView<Displayable> response) {
+      public ListCell<Displayable> call(ListView<Displayable> listView) {
         return new ListCell<Displayable>() {
+          private Label label = new Label();
+          
+          {
+            label.setWrapText(true);
+            label.maxWidthProperty().bind(listView.widthProperty().subtract(30));
+          }
+          
           @Override 
-          protected void updateItem(Displayable response, boolean empty) {
-            super.updateItem(response, empty);
-            super.setText("");
-            super.setGraphic(null);
-            if(response != null) {
-              response.update(this);
+          protected void updateItem(Displayable item, boolean empty) {
+            super.updateItem(item, empty);
+            super.setText(null);
+            if(item == null || empty) {
+              super.setGraphic(null);
+            } else {
+              item.update(label);
+              super.setGraphic(label);
             }
           }
         };

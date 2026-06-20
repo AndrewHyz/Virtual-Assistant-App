@@ -1,7 +1,7 @@
 package assistant;
 
 import javafx.geometry.Pos;
-import javafx.scene.control.ListCell;
+import javafx.scene.control.Label;
 import assistant.app.Displayable;
 
 
@@ -13,8 +13,8 @@ class EnteredCommand implements Displayable {
     this.command = command;
   }
   
-  public void update(ListCell<Displayable> cell) {
-    cell.setText("Command: " + command);
-    cell.setAlignment(Pos.CENTER_LEFT);
+  public void update(Label label) {
+    label.setText("Command: " + command);
+    label.setAlignment(Pos.CENTER_LEFT);
   }
 }

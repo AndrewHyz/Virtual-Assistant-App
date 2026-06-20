@@ -1,7 +1,7 @@
 package assistant.app;
 
 import javafx.geometry.Pos;
-import javafx.scene.control.ListCell;
+import javafx.scene.control.Label;
 
 public class Response implements Displayable {
   
@@ -12,10 +12,9 @@ public class Response implements Displayable {
   }
 
   @Override
-  public void update(ListCell<Displayable> cell) {
-    
-    cell.setAlignment(Pos.CENTER_RIGHT);
-    cell.setText(response);
+  public void update(Label label) {
+    label.setAlignment(Pos.CENTER_RIGHT);
+    label.setText(response);
   }
 
 }
