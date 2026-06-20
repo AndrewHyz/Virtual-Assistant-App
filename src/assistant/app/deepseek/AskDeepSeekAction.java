@@ -15,6 +15,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 
 import assistant.Assistant;
 import assistant.app.Action;
+import assistant.app.MarkdownResponse;
 import assistant.app.Response;
 
 public class AskDeepSeekAction extends Action {
@@ -161,7 +162,7 @@ public class AskDeepSeekAction extends Action {
 		if (answer == null || answer.length() == 0) {
 			assistant.displayItem(new Response("DeepSeek did not return an answer."));
 		} else {
-			assistant.displayItem(new Response(answer));
+			assistant.displayItem(new MarkdownResponse(answer));
 		}
 	}
 }

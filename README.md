@@ -50,6 +50,8 @@ To change the icon again, replace that PNG file with another PNG image and rerun
 
 The assistant currently supports Weather, Time, To-Do List, DeepSeek AI, and Calculator commands.
 
+Long responses (from DeepSeek or other apps) will automatically wrap to fit the window width. Resize the window and the text will reflow.
+
 ## Time Commands
 
 The Time app displays the current local time.
@@ -217,6 +219,43 @@ You can override it with:
 DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
 ```
 
+### Markdown Rendering
+
+DeepSeek responses are rendered as Markdown. Supported formatting includes:
+
+- **Headings** (`#`, `##`, `###`)
+- **Bold** (`**text**`) and *italic* (`*text*`)
+- **Code blocks** (``` ``` ```) with syntax highlighting style
+- **Inline code** (`` `code` ``)
+- **Tables** (`| col | col |`)
+- **Blockquotes** (`> quote`)
+- **Lists** (ordered and unordered)
+- **Links** and horizontal rules
+
+The Markdown rendering uses:
+
+```text
+src/assistant/app/MarkdownResponse.java
+```
+
+This class converts Markdown to HTML using the
+[flexmark](https://github.com/vsch/flexmark-java) library, then displays it in a
+JavaFX WebView with custom styling.
+
+### Dependencies
+
+The Markdown rendering requires the flexmark Maven dependency, already included in `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>com.vladsch.flexmark</groupId>
+    <artifactId>flexmark</artifactId>
+    <version>0.64.8</version>
+</dependency>
+```
+
+Run `Maven → Update Project` in Eclipse before building if the dependency is missing.
+
 The DeepSeek app code is here:
 
 ```text
@@ -231,6 +270,9 @@ Important files:
 
 ```text
 src/assistant/Assistant.java
+src/assistant/app/Displayable.java
+src/assistant/app/Response.java
+src/assistant/app/MarkdownResponse.java
 src/assistant/app/time/TimeApp.java
 src/assistant/app/time/GetTimeAction.java
 src/assistant/app/weather/WeatherApp.java

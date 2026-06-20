@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -23,11 +25,14 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import assistant.app.Action;
 import assistant.app.App;
 import assistant.app.Displayable;
+import assistant.app.MarkdownResponse;
+import assistant.app.Response;
 import assistant.app.Response;
 import assistant.app.calculator.CalculatorApp;
 import assistant.app.deepseek.DeepSeekApp;
@@ -106,10 +111,31 @@ public class Assistant extends Application {
       public ListCell<Displayable> call(ListView<Displayable> listView) {
         return new ListCell<Displayable>() {
           private Label label = new Label();
+          private WebView webView = new WebView();
+          private boolean webViewReady = false;
           
           {
             label.setWrapText(true);
             label.maxWidthProperty().bind(listView.widthProperty().subtract(30));
+            
+            webView.setPrefHeight(100);
+            webView.setMinHeight(40);
+            webView.prefWidthProperty().bind(listView.widthProperty().subtract(20));
+            webView.getEngine().getLoadWorker().stateProperty().addListener((obs, oldVal, newVal) -> {
+              if (newVal == Worker.State.SUCCEEDED) {
+                Platform.runLater(() -> {
+                  Object h = webView.getEngine().executeScript(
+                    "Math.max(document.body.scrollHeight || 0, " +
+                    "document.documentElement.scrollHeight || 0, " +
+                    "document.body.offsetHeight || 0, " +
+                    "document.documentElement.offsetHeight || 0)");
+                  if (h instanceof Number) {
+                    webView.setPrefHeight(((Number)h).doubleValue() + 10);
+                    webViewReady = true;
+                  }
+                });
+              }
+            });
           }
           
           @Override 
@@ -118,6 +144,12 @@ public class Assistant extends Application {
             super.setText(null);
             if(item == null || empty) {
               super.setGraphic(null);
+            } else if (item instanceof MarkdownResponse) {
+              MarkdownResponse mr = (MarkdownResponse) item;
+              webViewReady = false;
+              webView.setPrefHeight(100);
+              webView.getEngine().loadContent(wrapMarkdownHtml(mr.getHtmlContent()));
+              super.setGraphic(webView);
             } else {
               item.update(label);
               super.setGraphic(label);
@@ -211,6 +243,35 @@ public class Assistant extends Application {
   private static App[] getAvailableApps(){
     // TODO: add more apps avilable to the Virtual Assistant here
     return new App[]{new WeatherApp(), new TimeApp(), new TodoListApp(), new DeepSeekApp(), new CalculatorApp()};
+  }
+  
+  /**
+   * Wraps markdown HTML content with styling for display in a WebView.
+   */
+  private static String wrapMarkdownHtml(String body) {
+    return "<!DOCTYPE html><html><head><meta charset='UTF-8'>" +
+      "<style>" +
+      "body { font-family: -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif; " +
+      "  font-size: 14px; margin: 8px; padding: 0; color: #333; line-height: 1.6; " +
+      "  word-wrap: break-word; overflow-wrap: break-word; }" +
+      "pre { background: #f5f5f5; padding: 12px; border-radius: 6px; " +
+      "  overflow-x: auto; font-size: 13px; border: 1px solid #e0e0e0; }" +
+      "code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; " +
+      "  font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; }" +
+      "pre code { background: none; padding: 0; }" +
+      "table { border-collapse: collapse; margin: 8px 0; }" +
+      "th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }" +
+      "th { background: #f5f5f5; }" +
+      "blockquote { border-left: 3px solid #4a90d9; margin: 8px 0; " +
+      "  padding: 4px 12px; color: #555; background: #f9f9f9; }" +
+      "h1, h2, h3, h4 { margin: 12px 0 6px 0; }" +
+      "h1 { font-size: 1.4em; } h2 { font-size: 1.2em; } h3 { font-size: 1.1em; }" +
+      "p { margin: 4px 0 8px 0; }" +
+      "ul, ol { margin: 4px 0; padding-left: 24px; }" +
+      "li { margin: 2px 0; }" +
+      "a { color: #4a90d9; }" +
+      "hr { border: none; border-top: 1px solid #ddd; margin: 12px 0; }" +
+      "</style></head><body>" + body + "</body></html>";
   }
 }
 
